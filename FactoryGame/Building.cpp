@@ -2,7 +2,6 @@
 #include <vector>
 #include <map>
 
-
 extern std::map<std::string, int> USER_RESOURCES;
 
 Building::Building(int x, int y, char icon, std::string name, int productionRate, int powerConsumption, int powerProduction, std::vector<std::pair<std::string, int>> constructionResources)
@@ -14,7 +13,7 @@ Smelter::Smelter(int x, int y)
     : Building(x, y, 'M', "Smelter", 5, 10, 0, { {"Iron", 20}, {"Copper", 10} }) {}
 
 void Smelter::operate(std::map<std::string, int>& userResources, std::vector<std::unique_ptr<Resource>>& resources, std::vector<std::vector<char>>& grid) {
-    // Implement Smelter operation logic here
+    
 }
 
 Miner::Miner(int x, int y)
@@ -50,7 +49,7 @@ void Miner::operate(std::map<std::string, int>& userResources, std::vector<std::
     }
 }
 PowerPlant::PowerPlant(int x, int y)
-    : Building(x, y, 'P', "Power Plant", 0, 0, 50, { {"Coal", 50} }) {}
+    : Building(x, y, 'P', "Power Plant", 0, 0, 5, { {"Coal", 50} }) {}
 
 void PowerPlant::operate(std::map<std::string, int>& userResources, std::vector<std::unique_ptr<Resource>>& resources, std::vector<std::vector<char>>& grid) {
     if (grid[y][x] == 'O') {
@@ -73,5 +72,5 @@ Belt::Belt(int x, int y)
 	: Building(x, y, '+', "Belt", 0, 0, 0, { {"Iron", 5} }) {}
 
 void Belt::operate(std::map<std::string, int>& userResources, std::vector<std::unique_ptr<Resource>>& resources, std::vector<std::vector<char>>& grid) {
-
+    
 }

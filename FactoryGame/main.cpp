@@ -239,7 +239,7 @@ void handleInput(vector<vector<char>>& grid, vector<unique_ptr<Resource>>& resou
     }
     else if (input == 'r') {
         char c;
-        cout << "My Resources:" << endl;
+        cout << endl << "My Resources:" << endl;
         for (const auto& resource : USER_RESOURCES) {
             cout << resource.first << ": " << resource.second << endl;
         }
@@ -300,6 +300,41 @@ void handleInput(vector<vector<char>>& grid, vector<unique_ptr<Resource>>& resou
     }
 }
 
+void clearScreen() {
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    COORD coordScreen = { 0, 0 };
+    DWORD cCharsWritten;
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    DWORD dwConSize;
+
+    if (!GetConsoleScreenBufferInfo(hConsole, &csbi)) {
+        return;
+    }
+    dwConSize = csbi.dwSize.X * csbi.dwSize.Y;
+
+    if (!FillConsoleOutputCharacter(hConsole, (TCHAR)' ', dwConSize, coordScreen, &cCharsWritten)) {
+        return;
+    }
+
+    if (!GetConsoleScreenBufferInfo(hConsole, &csbi)) {
+        return;
+    }
+
+    if (!FillConsoleOutputAttribute(hConsole, csbi.wAttributes, dwConSize, coordScreen, &cCharsWritten)) {
+        return;
+    }
+
+    SetConsoleCursorPosition(hConsole, coordScreen);
+}
+
+void moveCursorTo(int x, int y) {
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    COORD coord;
+    coord.X = x;
+    coord.Y = y;
+    SetConsoleCursorPosition(hConsole, coord);
+}
+
 int main() {
     srand(time(nullptr));
     int width = GRID_WIDTH;
@@ -320,6 +355,7 @@ int main() {
 
     while (true) {
         system("cls");
+        clearScreen();
         updateGrid(grid, resources, buildings);
         displayGameState(width, height, grid, resources, buildings);
 
