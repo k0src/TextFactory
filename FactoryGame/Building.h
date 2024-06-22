@@ -14,15 +14,20 @@ public:
     char icon;
     std::string name;
     int x, y;
-    int productionRate;
+    int amountOfResource;
+    int maxAmountOfResource = 100;
     int powerConsumption;
     int powerProduction;
+    std::string resourceType;
+    Building* prev = nullptr;
+    Building* next = nullptr;
     std::vector<std::pair<std::string, int>> constructionResources;
 
-    Building(int x, int y, char icon, std::string name, int productionRate, int powerConsumption, int powerProduction, std::vector<std::pair<std::string, int>> constructionResources);
+    Building(int x, int y, char icon, std::string name, int amountOfResource, int powerConsumption, int powerProduction, std::vector<std::pair<std::string, int>> constructionResources);
     virtual ~Building();
 
     virtual void operate(std::map<std::string, int>& userResources, std::vector<std::unique_ptr<Resource>>& resources, std::vector<std::vector<char>>& grid) = 0;
+	int getAmount() const { return amountOfResource; }
 };
 
 class Smelter : public Building {
@@ -52,7 +57,12 @@ public:
 class Belt : public Building {
 public:
 	Belt(int x, int y);
-	void operate(std::map<std::string, int>& userResources, std::vector<std::unique_ptr<Resource>>& resources, std::vector<std::vector<char>>& grid) override;
+    void operate(std::map<std::string, int>& userResources, std::vector<std::unique_ptr<Resource>>& resources, std::vector<std::vector<char>>& grid) override;
+    // next & prev pointer
+    // amount of item
+    // pass if belt has resource
+        // get from prev
+    // pass to next
 };
 
 #endif

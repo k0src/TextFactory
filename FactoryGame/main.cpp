@@ -13,14 +13,16 @@
 
 using namespace std;
 
-const int GRID_WIDTH = 30;
-const int GRID_HEIGHT = 30;
+int GRID_WIDTH = 30;
+int GRID_HEIGHT = 30;
+int NUM_RESOURCES = 3;
 
-int GLOBAL_CLOCK = 1000;
+int GLOBAL_CLOCK = 1000; // make this slower
 
 map<string, int> USER_RESOURCES = {
     {"Iron", 100},
     {"Copper", 100},
+    {"Wire", 0},
     {"Coal", 100},
     {"Stone", 100},
     {"Power", 0},
@@ -55,7 +57,7 @@ void updateGrid(vector<vector<char>>& grid, const vector<unique_ptr<Resource>>& 
     }
 
 	for (const auto& building : buildings) {
-		if (building->icon == '+')
+		if (building->icon == '+' || building->icon == 'M')
 		    grid[building->y][building->x] = building->icon;
 	}
 }
@@ -84,7 +86,7 @@ void displayGameState(int width, int height, const vector<vector<char>>& grid, c
         cout << "Buildings:" << endl << endl;
         for (const auto& building : buildings) {
             if (building->icon != '+')
-                cout << "\033[1;32m" << building->name << " at (" << building->x << ", " << building->y << ")" << "\033[0m" << endl;
+                cout << "\033[1;32m" << building->name << " at {" << building->x << ", " << building->y << "}" << "\033[0m" << endl;
         }
     }
 }
@@ -123,6 +125,46 @@ void operateBuildings(vector<unique_ptr<Building>>& buildings, vector<unique_ptr
         else if (auto* miner = dynamic_cast<Miner*>(building.get())) {
             miner->operate(userResources, resources, grid);
         }
+		else if (auto* smelter = dynamic_cast<Smelter*>(building.get())) {
+			smelter->operate(userResources, resources, grid);
+		}
+		else if (auto* constructor = dynamic_cast<Constructor*>(building.get())) {
+			constructor->operate(userResources, resources, grid);
+		}
+        else if (auto* belt = dynamic_cast<Belt*>(building.get())) {
+			belt->operate(userResources, resources, grid);
+        }
+    }
+}
+
+void setBuildingPointers(std::vector<std::unique_ptr<Building>>& buildings, std::vector<std::vector<char>>& grid) {
+    std::map<std::pair<int, int>, Building*> buildingMap;
+
+    for (auto& building : buildings) {
+        buildingMap[{building->x, building->y}] = building.get();
+    }
+
+    for (auto& building : buildings) {
+        int x = building->x;
+        int y = building->y;
+
+        // Check adjacent cells
+        std::vector<std::pair<int, int>> adjacentCells = {
+            {x, y - 1}, // Up
+            {x, y + 1}, // Down
+            {x - 1, y}, // Left
+            {x + 1, y}  // Right
+        };
+
+        for (auto& cell : adjacentCells) {
+            if (buildingMap.find(cell) != buildingMap.end()) {
+                Building* adjacentBuilding = buildingMap[cell];
+                if (building->next == nullptr && adjacentBuilding->prev == nullptr) {
+                    building->next = adjacentBuilding;
+                    adjacentBuilding->prev = building.get();
+                }
+            }
+        }
     }
 }
 
@@ -140,6 +182,15 @@ void buildBuilding(vector<vector<char>>& grid, vector<unique_ptr<Resource>>& res
 
     unique_ptr<Building> newBuilding;
     if (buildingChoice == 1) {
+        if (grid[y][x] != '.' || any_of(buildings.begin(), buildings.end(), [x, y](const unique_ptr<Building>& building) {
+            return building->x == x && building->y == y;
+            })) {
+            cout << "Invalid location: Smelter can only be built on empty spaces!" << endl;
+            cout << "Press any key to continue..." << endl;
+            cin >> c;
+            return;
+        }
+
         newBuilding = make_unique<Smelter>(x, y);
     }
     else if (buildingChoice == 2) {
@@ -335,7 +386,51 @@ void moveCursorTo(int x, int y) {
     SetConsoleCursorPosition(hConsole, coord);
 }
 
+void displayStartMenu() {
+    int mapSize;
+    cout << "        ,----,                                                                                                  \n";
+    cout << "      ,/   .`|                                                                                                  \n";
+    cout << "    ,`   .'  :                       ___        ,---,.                        ___                               \n";
+    cout << "  ;    ;     /                     ,--.'|_    ,'  .' |                      ,--.'|_                             \n";
+    cout << ".'___,/    ,'                      |  | :,' ,---.'   |                      |  | :,'   ,---.    __  ,-.         \n";
+    cout << "|    :     |           ,--,  ,--,  :  : ' : |   |   .'                      :  : ' :  '   ,\\ ,' ,'/ /|         \n";
+    cout << ";    |.';  ;   ,---.   |'. \\/ .`|.;__,'  /  :   :  :    ,--.--.     ,---. .;__,'  /  /   /   |'  | |' |   .--,  \n";
+    cout << "`----'  |  |  /     \\  '  \\/  / ;|  |   |   :   |  |-, /       \\   /     \\|  |   |  .   ; ,. :|  |   ,' /_ ./|  \n";
+    cout << "    '   :  ; /    /  |  \\  \\.' / :__,'| :   |   :  ;/|.--.  .-. | /    / ':__,'| :  '   | |: :'  :  /, ' , ' :  \n";
+    cout << "    |   |  '.    ' / |   \\  ;  ;   '  : |__ |   |   .' \\__\\/: . ..    ' /   '  : |__'   | .; :|  | '/___/ \\: |  \n";
+    cout << "    '   :  |'   ;   /|  / \\  \\  \\  |  | '.'|'   :  '   ,\" .--.; |'   ; :__  |  | '.'|   :    |;  : | .  \\  ' |  \n";
+    cout << "    ;   |.' '   |  / |./__;   ;  \\ ;  :    ;|   |  |  /  /  ,.  |'   | '.'| ;  :    ;\\   \\  / |  , ;  \\  ;   :  \n";
+    cout << "    '---'   |   :    ||   :/\\  \\ ; |  ,   / |   :  \\ ;  :   .'   \\   :    : |  ,   /  `----'   ---'    \\  \\  ;  \n";
+    cout << "             \\   \\  / `---'  `--`   ---`-'  |   | ,' |  ,     .-./\\   \\  /   ---`-'                     :  \\  \\ \n";
+    cout << "              `----'                        `----'    `--`---'     `----'                                \\  ' ; \n";
+    cout << "                                                                                                          `--`   \n";
+
+    cout << endl;
+	cout << "\033[1;32mWelcome to TextFactory!\033[0m" << endl;
+    cout << endl;
+    
+    do {
+        cout << "Enter the size of the map (min 10, max 40): ";
+        cin >> mapSize;
+	} while (mapSize < 10 || mapSize > 50);
+
+	GRID_WIDTH = mapSize;
+	GRID_HEIGHT = mapSize;
+
+	if (mapSize < 20) {
+		NUM_RESOURCES = 2;
+	}
+    else if (mapSize < 30) {
+		NUM_RESOURCES = 3;
+	}
+    else {
+		NUM_RESOURCES = 5;
+	}
+}
+
 int main() {
+    displayStartMenu();
+
     srand(time(nullptr));
     int width = GRID_WIDTH;
     int height = GRID_HEIGHT;
@@ -344,7 +439,7 @@ int main() {
     vector<unique_ptr<Resource>> resources;
     vector<unique_ptr<Building>> buildings;
 
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < NUM_RESOURCES; i++) {
         resources.push_back(generateResource<IronVein>(width, height));
         resources.push_back(generateResource<CopperVein>(width, height));
         resources.push_back(generateResource<CoalVein>(width, height));
@@ -373,7 +468,15 @@ int main() {
                 }
             }
             Sleep(GLOBAL_CLOCK);
+            setBuildingPointers(buildings, grid);
             operateBuildings(buildings, resources, grid, USER_RESOURCES);
+
+            cout << "buildings" << endl;
+            char c;
+			for (auto& b : buildings) {
+				cout << "Next: " << b->next->name << " Prev: " << b->prev->name << endl;
+			}
+            cin >> c;
         }
     }
     return 0;
