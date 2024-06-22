@@ -68,3 +68,10 @@ void PowerPlant::operate(std::map<std::string, int>& userResources, std::vector<
         }
     }
 }
+
+Belt::Belt(int x, int y)
+	: Building(x, y, '+', "Belt", 0, 0, 0, { {"Iron", 5} }) {}
+
+void Belt::operate(std::map<std::string, int>& userResources, std::vector<std::unique_ptr<Resource>>& resources, std::vector<std::vector<char>>& grid) {
+
+}

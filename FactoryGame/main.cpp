@@ -16,12 +16,17 @@ using namespace std;
 const int GRID_WIDTH = 30;
 const int GRID_HEIGHT = 30;
 
+int GLOBAL_CLOCK = 1000;
+
 map<string, int> USER_RESOURCES = {
     {"Iron", 100},
     {"Copper", 100},
     {"Coal", 100},
-    {"Stone", 0},
-    {"Power", 0}
+    {"Stone", 100},
+    {"Power", 0},
+	{"Steel", 0},
+	{"Circuit", 0},
+    {"Concrete", 0}
 };
 
 pair<int, int> getResourceCoords(int width, int height) {
@@ -48,32 +53,38 @@ void updateGrid(vector<vector<char>>& grid, const vector<unique_ptr<Resource>>& 
             grid[resource->y][resource->x] = resource->icon;
         }
     }
+
+	for (const auto& building : buildings) {
+		if (building->icon == '+')
+		    grid[building->y][building->x] = building->icon;
+	}
 }
 
 void displayGameState(int width, int height, const vector<vector<char>>& grid, const vector<unique_ptr<Resource>>& resources, const vector<unique_ptr<Building>>& buildings) {
     // Display the grid
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
-            cout << grid[i][j] << " ";
+            cout << "\033[1m" << grid[i][j] << " ";
         }
-        cout << endl;
+        cout << "\033[0m" << endl;
     }
 
     cout << endl;
 
     // Display the resources
-    cout << "Resources:" << endl;
+    cout << "\033[1mResources:\033[0m" << endl << endl;
 
     for (const auto& resource : resources) {
-        cout << resource->name << " (" << resource->icon << ") " << " {" << resource->x << ", "
-            << resource->y << "} " << ": Remaining: " << resource->quantity << endl;
+        cout << "\033[1;32m" << resource->name << " (" << resource->icon << ") " << " {" << resource->x << ", "
+            << resource->y << "} " << ": Remaining: " << resource->quantity << "\033[0m" << endl;
     }
 
     if (!buildings.empty()) {
         cout << endl;
-        cout << "Buildings:" << endl;
+        cout << "Buildings:" << endl << endl;
         for (const auto& building : buildings) {
-            cout << building->name << " at (" << building->x << ", " << building->y << ")" << endl;
+            if (building->icon != '+')
+                cout << "\033[1;32m" << building->name << " at (" << building->x << ", " << building->y << ")" << "\033[0m" << endl;
         }
     }
 }
@@ -121,6 +132,8 @@ void buildBuilding(vector<vector<char>>& grid, vector<unique_ptr<Resource>>& res
     cout << "1. Smelter" << endl;
     cout << "2. Miner" << endl;
     cout << "3. Power Plant" << endl;
+	cout << "4. Constructor" << endl;
+	cout << "5. Belt" << endl;
     cout << "Enter the number of the building you want to build: ";
     int buildingChoice;
     cin >> buildingChoice;
@@ -163,6 +176,21 @@ void buildBuilding(vector<vector<char>>& grid, vector<unique_ptr<Resource>>& res
             return;
         }
     }
+    else if (buildingChoice == 4) {
+        cout << "Not implemented" << endl;
+    }
+	else if (buildingChoice == 5) {
+		if (grid[y][x] != '.' || any_of(buildings.begin(), buildings.end(), [x, y](const unique_ptr<Building>& building) {
+			return building->x == x && building->y == y;
+			})) {
+			cout << "Invalid location: Belt can only be built on empty spaces!" << endl;
+			cout << "Press any key to continue..." << endl;
+			cin >> c;
+			return;
+		}
+
+		newBuilding = make_unique<Belt>(x, y);
+	}
     else {
         cout << "Invalid building choice!" << endl;
         cout << "Press any key to continue..." << endl;
@@ -189,18 +217,20 @@ void buildBuilding(vector<vector<char>>& grid, vector<unique_ptr<Resource>>& res
 
 void handleInput(vector<vector<char>>& grid, vector<unique_ptr<Resource>>& resources, vector<unique_ptr<Building>>& buildings, bool& autoMode) {
     char input;
-    cout << "Enter a command ('c' - view all commands): ";
+    cout << endl << "\033[1mEnter a [c]ommand: \033[0m";
     cin >> input;
 
     if (input == 'c') {
         char c;
+        cout << endl;
         cout << "Commands:" << endl;
-        cout << "m - mine a resource" << endl;
-        cout << "b - build a building" << endl;
-        cout << "q - quit the game" << endl;
-        cout << "r - view my resources" << endl;
-        cout << "c - view all commands" << endl;
-        cout << "a - toggle auto mode" << endl;
+        cout << "[m]ine a resource" << endl;
+        cout << "[b]uild a building" << endl;
+		cout << "craf[t] an item" << endl;
+        cout << "view my [r]esources" << endl;
+        cout << "toggle [a]uto mode" << endl;
+        cout << "[c]ommands" << endl;
+        cout << "[q]uit the game" << endl;
         cout << endl << "Press any key to continue..." << endl;
         cin >> c;
     }
@@ -234,6 +264,33 @@ void handleInput(vector<vector<char>>& grid, vector<unique_ptr<Resource>>& resou
         cout << "Auto mode " << (autoMode ? "enabled" : "disabled") << endl;
         cout << "Press any key to continue..." << endl;
         cin >> c;
+    }
+    else if (input == 't') {
+        int craftingChoice;
+        cout << endl;
+        cout << "Crafting menu" << endl;
+		cout << "1. Circuit" << endl;
+		cout << "Enter the number of the item you want to craft: ";
+		cin >> craftingChoice;
+
+        char c;
+		if (craftingChoice == 1) {
+			if (USER_RESOURCES["Iron"] >= 5 && USER_RESOURCES["Copper"] >= 5) {
+				USER_RESOURCES["Iron"] -= 5;
+				USER_RESOURCES["Copper"] -= 5;
+				USER_RESOURCES["Circuit"] += 1;
+				cout << "Circuit crafted!" << endl;
+			}
+			else {
+				cout << "Not enough resources to craft Circuit!" << endl;
+			}
+		}
+		else {
+			cout << "Invalid crafting choice!" << endl;
+		}
+
+		cout << "Press any key to continue..." << endl;
+		cin >> c;
     }
     else {
         char c;
@@ -275,11 +332,11 @@ int main() {
                 if (input == 'a') {
                     autoMode = false;
                     cout << "Auto mode disabled" << endl;
-                    Sleep(1000);
+                    Sleep(GLOBAL_CLOCK);
                     continue;
                 }
             }
-            Sleep(1000);
+            Sleep(GLOBAL_CLOCK);
             operateBuildings(buildings, resources, grid, USER_RESOURCES);
         }
     }

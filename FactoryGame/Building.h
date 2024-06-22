@@ -43,4 +43,16 @@ public:
     void operate(std::map<std::string, int>& userResources, std::vector<std::unique_ptr<Resource>>& resources, std::vector<std::vector<char>>& grid) override;
 };
 
+class Constructor : public Building {
+public:
+	Constructor(int x, int y);
+	void operate(std::map<std::string, int>& userResources, std::vector<std::unique_ptr<Resource>>& resources, std::vector<std::vector<char>>& grid) override;
+};
+
+class Belt : public Building {
+public:
+	Belt(int x, int y);
+	void operate(std::map<std::string, int>& userResources, std::vector<std::unique_ptr<Resource>>& resources, std::vector<std::vector<char>>& grid) override;
+};
+
 #endif
