@@ -17,7 +17,7 @@ int GRID_WIDTH = 30;
 int GRID_HEIGHT = 30;
 int NUM_RESOURCES = 3;
 
-int GLOBAL_CLOCK = 1000; // make this slower
+int GLOBAL_CLOCK = 1000;
 
 map<string, int> USER_RESOURCES = {
     {"Iron", 100},
@@ -125,20 +125,20 @@ void operateBuildings(vector<unique_ptr<Building>>& buildings, vector<unique_ptr
         else if (auto* miner = dynamic_cast<Miner*>(building.get())) {
             miner->operate(userResources, resources, grid);
         }
-		else if (auto* smelter = dynamic_cast<Smelter*>(building.get())) {
-			smelter->operate(userResources, resources, grid);
-		}
-		else if (auto* constructor = dynamic_cast<Constructor*>(building.get())) {
-			constructor->operate(userResources, resources, grid);
-		}
+        else if (auto* smelter = dynamic_cast<Smelter*>(building.get())) {
+            smelter->operate(userResources, resources, grid);
+        }
+        else if (auto* constructor = dynamic_cast<Constructor*>(building.get())) {
+            constructor->operate(userResources, resources, grid);
+        }
         else if (auto* belt = dynamic_cast<Belt*>(building.get())) {
-			belt->operate(userResources, resources, grid);
+            belt->operate(userResources, resources, grid);
         }
     }
 }
 
-void setBuildingPointers(std::vector<std::unique_ptr<Building>>& buildings, std::vector<std::vector<char>>& grid) {
-    std::map<std::pair<int, int>, Building*> buildingMap;
+void setBuildingPointers(vector<unique_ptr<Building>>& buildings, vector<vector<char>>& grid) {
+    map<pair<int, int>, Building*> buildingMap;
 
     for (auto& building : buildings) {
         buildingMap[{building->x, building->y}] = building.get();
@@ -148,12 +148,11 @@ void setBuildingPointers(std::vector<std::unique_ptr<Building>>& buildings, std:
         int x = building->x;
         int y = building->y;
 
-        // Check adjacent cells
-        std::vector<std::pair<int, int>> adjacentCells = {
-            {x, y - 1}, // Up
-            {x, y + 1}, // Down
-            {x - 1, y}, // Left
-            {x + 1, y}  // Right
+        vector<pair<int, int>> adjacentCells = {
+            {x, y - 1},
+            {x, y + 1},
+            {x - 1, y},
+            {x + 1, y} 
         };
 
         for (auto& cell : adjacentCells) {
@@ -178,7 +177,7 @@ void buildBuilding(vector<vector<char>>& grid, vector<unique_ptr<Resource>>& res
 	cout << "5. Belt" << endl;
     cout << "Enter the number of the building you want to build: ";
     int buildingChoice;
-    cin >> buildingChoice;
+    std::cin >> buildingChoice;
 
     unique_ptr<Building> newBuilding;
     if (buildingChoice == 1) {
@@ -187,7 +186,7 @@ void buildBuilding(vector<vector<char>>& grid, vector<unique_ptr<Resource>>& res
             })) {
             cout << "Invalid location: Smelter can only be built on empty spaces!" << endl;
             cout << "Press any key to continue..." << endl;
-            cin >> c;
+            std::cin >> c;
             return;
         }
 
@@ -206,7 +205,7 @@ void buildBuilding(vector<vector<char>>& grid, vector<unique_ptr<Resource>>& res
             char c;
             cout << "Invalid location: Miner can only be built on a resource deposits and where no building exists!" << endl;
 			cout << "Press any key to continue..." << endl;
-			cin >> c;
+            std::cin >> c;
             return;
         }
     }
@@ -223,7 +222,7 @@ void buildBuilding(vector<vector<char>>& grid, vector<unique_ptr<Resource>>& res
             char c;
             cout << "Invalid location: Power Plant can only be built on coal deposits and where no building exists!" << endl;
             cout << "Press any key to continue..." << endl;
-            cin >> c;
+            std::cin >> c;
             return;
         }
     }
@@ -236,7 +235,7 @@ void buildBuilding(vector<vector<char>>& grid, vector<unique_ptr<Resource>>& res
 			})) {
 			cout << "Invalid location: Belt can only be built on empty spaces!" << endl;
 			cout << "Press any key to continue..." << endl;
-			cin >> c;
+            std::cin >> c;
 			return;
 		}
 
@@ -245,7 +244,7 @@ void buildBuilding(vector<vector<char>>& grid, vector<unique_ptr<Resource>>& res
     else {
         cout << "Invalid building choice!" << endl;
         cout << "Press any key to continue..." << endl;
-        cin >> c;
+        std::cin >> c;
         return;
     }
 
@@ -253,7 +252,7 @@ void buildBuilding(vector<vector<char>>& grid, vector<unique_ptr<Resource>>& res
         if (USER_RESOURCES[resource.first] < resource.second) {
             cout << "Not enough " << resource.first << " to build " << newBuilding->name << "!" << endl;
             cout << "Press any key to continue..." << endl;
-            cin >> c;
+            std::cin >> c;
             return;
         }
     }
@@ -269,7 +268,7 @@ void buildBuilding(vector<vector<char>>& grid, vector<unique_ptr<Resource>>& res
 void handleInput(vector<vector<char>>& grid, vector<unique_ptr<Resource>>& resources, vector<unique_ptr<Building>>& buildings, bool& autoMode) {
     char input;
     cout << endl << "\033[1mEnter a [c]ommand: \033[0m";
-    cin >> input;
+    std::cin >> input;
 
     if (input == 'c') {
         char c;
@@ -283,7 +282,7 @@ void handleInput(vector<vector<char>>& grid, vector<unique_ptr<Resource>>& resou
         cout << "[c]ommands" << endl;
         cout << "[q]uit the game" << endl;
         cout << endl << "Press any key to continue..." << endl;
-        cin >> c;
+        std::cin >> c;
     }
     else if (input == 'q') {
         exit(0);
@@ -295,18 +294,22 @@ void handleInput(vector<vector<char>>& grid, vector<unique_ptr<Resource>>& resou
             cout << resource.first << ": " << resource.second << endl;
         }
         cout << "Press any key to continue..." << endl;
-        cin >> c;
+        std::cin >> c;
     }
     else if (input == 'm') {
         int x, y;
-        cout << "Enter the x and y coordinates of the resource you want to mine: ";
-        cin >> x >> y;
+		do {
+			cout << "Enter the x and y coordinates of the resource you want to mine: ";
+            std::cin >> x >> y;
+		} while (x < 0 || x >= GRID_WIDTH || y < 0 || y >= GRID_HEIGHT);
         mineResource(grid, resources, x, y);
     }
     else if (input == 'b') {
         int x, y;
-        cout << "Enter the x and y coordinates where you want to build: ";
-        cin >> x >> y;
+        do {
+			cout << "Enter the x and y coordinates of the building you want to build: ";
+            std::cin >> x >> y;
+		} while (x < 0 || x >= GRID_WIDTH || y < 0 || y >= GRID_HEIGHT);
         buildBuilding(grid, resources, buildings, x, y);
     }
     else if (input == 'a') {
@@ -314,7 +317,7 @@ void handleInput(vector<vector<char>>& grid, vector<unique_ptr<Resource>>& resou
         char c;
         cout << "Auto mode " << (autoMode ? "enabled" : "disabled") << endl;
         cout << "Press any key to continue..." << endl;
-        cin >> c;
+        std::cin >> c;
     }
     else if (input == 't') {
         int craftingChoice;
@@ -322,7 +325,7 @@ void handleInput(vector<vector<char>>& grid, vector<unique_ptr<Resource>>& resou
         cout << "Crafting menu" << endl;
 		cout << "1. Circuit" << endl;
 		cout << "Enter the number of the item you want to craft: ";
-		cin >> craftingChoice;
+        std::cin >> craftingChoice;
 
         char c;
 		if (craftingChoice == 1) {
@@ -341,13 +344,13 @@ void handleInput(vector<vector<char>>& grid, vector<unique_ptr<Resource>>& resou
 		}
 
 		cout << "Press any key to continue..." << endl;
-		cin >> c;
+        std::cin >> c;
     }
     else {
         char c;
         cout << "Invalid command!" << endl;
         cout << "Press any key to continue..." << endl;
-        cin >> c;
+        std::cin >> c;
     }
 }
 
@@ -411,7 +414,7 @@ void displayStartMenu() {
     
     do {
         cout << "Enter the size of the map (min 10, max 40): ";
-        cin >> mapSize;
+        std::cin >> mapSize;
 	} while (mapSize < 10 || mapSize > 50);
 
 	GRID_WIDTH = mapSize;
@@ -470,13 +473,6 @@ int main() {
             Sleep(GLOBAL_CLOCK);
             setBuildingPointers(buildings, grid);
             operateBuildings(buildings, resources, grid, USER_RESOURCES);
-
-            cout << "buildings" << endl;
-            char c;
-			for (auto& b : buildings) {
-				cout << "Next: " << b->next->name << " Prev: " << b->prev->name << endl;
-			}
-            cin >> c;
         }
     }
     return 0;

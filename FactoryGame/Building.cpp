@@ -15,17 +15,25 @@ Smelter::Smelter(int x, int y)
     : Building(x, y, 'M', "Smelter", 5, 10, 0, { {"Iron", 20}, {"Copper", 10} }) {}
 
 void Smelter::operate(std::map<std::string, int>& userResources, std::vector<std::unique_ptr<Resource>>& resources, std::vector<std::vector<char>>& grid) {
-    // check if a belt is connected if not send to inventory
     if (prev && prev->amountOfResource > 0) {
+        char c;
         int receivedAmount = std::min(prev->amountOfResource, maxAmountOfResource - amountOfResource);
+        std::cout << "Smelter at {" << x << ", " << y << "} receiving " << receivedAmount << " of " << prev->resourceType << " from {" << prev->x << ", " << prev->y << "}" << std::endl;
+        std::cin >> c;
         if (prev->resourceType == "Iron") {
+            char c;
             std::cout << "iron" << std::endl;
+			std::cin >> c;
         }
         else if (prev->resourceType == "Copper") {
+            char c;
             std::cout << "copper" << std::endl;
+			std::cin >> c;
         }
         else if (prev->resourceType == "Stone") {
+			char c;
             std::cout << "stone" << std::endl;
+			std::cin >> c;
         }
 
         prev->amountOfResource -= receivedAmount;
@@ -78,7 +86,7 @@ void Miner::operate(std::map<std::string, int>& userResources, std::vector<std::
 }
 
 PowerPlant::PowerPlant(int x, int y)
-    : Building(x, y, 'P', "Power Plant", 0, 0, 5, { {"Coal", 50} }) {}
+    : Building(x, y, 'P', "Power Plant", 0, 0, 50, { {"Coal", 50} }) {}
 
 void PowerPlant::operate(std::map<std::string, int>& userResources, std::vector<std::unique_ptr<Resource>>& resources, std::vector<std::vector<char>>& grid) {
     if (grid[y][x] == 'O') {
@@ -107,6 +115,9 @@ void Belt::operate(std::map<std::string, int>& userResources, std::vector<std::u
             prev->amountOfResource -= transferAmount;
             amountOfResource += transferAmount;
             resourceType = prev->resourceType;
+            char c;
+            std::cout << "Belt at {" << x << ", " << y << "} receiving " << transferAmount << " of " << resourceType << " from {" << prev->x << ", " << prev->y << "}" << std::endl;
+			std::cin >> c;
         }
     }
 
@@ -119,6 +130,9 @@ void Belt::operate(std::map<std::string, int>& userResources, std::vector<std::u
             if (amountOfResource == 0) {
                 resourceType.clear();
             }
+			char c;
+            std::cout << "Belt at {" << x << ", " << y << "} transferring " << transferAmount << " of " << resourceType << " to {" << next->x << ", " << next->y << "}" << std::endl;
+			std::cin >> c;
         }
     }
 }
